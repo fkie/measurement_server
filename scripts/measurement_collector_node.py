@@ -18,7 +18,8 @@
 from typing import Dict
 from typing import Set
 
-import rclpy, sys
+import rclpy
+import sys
 from rclpy.node import Node
 import tf2_ros
 import threading
@@ -29,8 +30,8 @@ from std_msgs.msg import Int32
 from fkie_measurement_msgs.msg import Measurement, MeasurementArray, MeasurementLocated, MeasurementValue
 
 
-class MeasurementCollectorNode():#rospy.SubscribeListener
-    def __init__(self):
+class MeasurementCollectorNode():
+    def __init__(self, node: Node):
         super(MeasurementCollectorNode, self).__init__()
         self.ros_node = node
         self.ros_node.get_logger().info('Launch parameter:')
@@ -41,12 +42,13 @@ class MeasurementCollectorNode():#rospy.SubscribeListener
         self.ros_node.declare_parameter('utm_zone_number', 32)
         self.ros_node.declare_parameter('utm_zone_letter', 'U')
         self.ros_node.declare_parameter('topic_fix', "fix")
-        
-        
-        self.param_topic_pub_measurement_array = self.ros_node.get_parameter_or('topic_pub_measurement_array', 'measurement_array_agg')
+
+        self.param_topic_pub_measurement_array = self.ros_node.get_parameter_or(
+            'topic_pub_measurement_array', 'measurement_array_agg')
         self.ros_node.get_logger().info(f"  topic_pub_measurement_array: {self.param_topic_pub_measurement_array}")
 
-        self.param_topic_sub_measurement_array = self.ros_node.get_parameter_or('topic_sub_measurement_array', 'measurement_array')
+        self.param_topic_sub_measurement_array = self.ros_node.get_parameter_or(
+            'topic_sub_measurement_array', 'measurement_array')
         self.ros_node.get_logger().info(f"  topic_sub_measurement_array: {self.param_topic_sub_measurement_array}")
 
         self.global_frame = self.ros_node.get_parameter_or('frame_global', "map")
@@ -57,7 +59,7 @@ class MeasurementCollectorNode():#rospy.SubscribeListener
 
         self.utm_zone_letter = self.ros_node.get_parameter_or('utm_zone_letter', "").get_parameter_value().string_value
         self.ros_node.get_logger().info(f"  utm_zone_letter: {self.utm_zone_letter}")
-        
+
         self.param_topic_fix = self.ros_node.get_parameter(
             'topic_fix').get_parameter_value().string_value
         self.ros_node.get_logger().info(f"  topic_fix: {self.param_topic_fix}")
@@ -74,21 +76,24 @@ class MeasurementCollectorNode():#rospy.SubscribeListener
                 NavSatFix, self.param_topic_fix, self.cb_fix, 5)
             self.ros_node.get_logger().info(
                 f"subscribed to {self.param_topic_fix}")
-        
-        self.pub_measurement_array = self.ros_node.create_publisher(MeasurementArray, self.param_topic_pub_measurement_array,5)   
+
+        self.pub_measurement_array = self.ros_node.create_publisher(
+            MeasurementArray, self.param_topic_pub_measurement_array, 5)
         self.ros_node.get_logger().info(f"advertised to {self.pub_measurement_array.topic_name}")
 
         self.sub_m = self.ros_node.create_subscription(Measurement, '/in_measurement', self.callback_measurement, 5)
-        self.ros_node.get_logger().info(f"subscriberd to {self.sub_m.topic_name}")
+        self.ros_node.get_logger().info(f"subscribed to {self.sub_m.topic_name}")
 
-        self.sub_m_located = self.ros_node.create_subscription(MeasurementLocated, '/in_measurement_located', self.callback_measurement_located, 5)
-        self.ros_node.get_logger().info(f"subscriberd to {self.sub_m_located.topic_name}")
-        
-        self.sub_m_array = self.ros_node.create_subscription(MeasurementArray, self.param_topic_sub_measurement_array, self.callback_measurement_array, 5)
-        self.ros_node.get_logger().info(f"subscriberd to {self.sub_m_array.topic_name}")
-        
+        self.sub_m_located = self.ros_node.create_subscription(
+            MeasurementLocated, '/in_measurement_located', self.callback_measurement_located, 5)
+        self.ros_node.get_logger().info(f"subscribed to {self.sub_m_located.topic_name}")
+
+        self.sub_m_array = self.ros_node.create_subscription(
+            MeasurementArray, self.param_topic_sub_measurement_array, self.callback_measurement_array, 5)
+        self.ros_node.get_logger().info(f"subscribed to {self.sub_m_array.topic_name}")
+
         self.sub_client_count = self.ros_node.create_subscription(Int32, '/client_count', self.callback_client_count, 5)
-    
+
     def cb_fix(self, msg):
         utm_point = utm.fromLatLong(
             msg.latitude, msg.longitude, msg.altitude)
@@ -108,31 +113,31 @@ class MeasurementCollectorNode():#rospy.SubscribeListener
             self.sensor_histories[msg.unique_serial_id] = ma
 
         s_history: MeasurementArray = self.sensor_histories[msg.unique_serial_id]
-        msgl = MeasurementLocated()
-        msgl.measurement = msg
+        msg_loc = MeasurementLocated()
+        msg_loc.measurement = msg
 
         try:
             trans = self.tf_buffer.lookup_transform(
                 self.global_frame, msg.header.frame_id, self.ros_node.get_clock().now())
             # get current position
-            msgl.pose.pose.position.x = trans.transform.translation.x
-            msgl.pose.pose.position.y = trans.transform.translation.y
-            msgl.pose.pose.position.z = trans.transform.translation.z
-            msgl.pose.header.frame_id = trans.header.frame_id
-            msgl.pose.header.stamp = trans.header.stamp
-            s_history.located_measurements.append(msgl)
+            msg_loc.pose.pose.position.x = trans.transform.translation.x
+            msg_loc.pose.pose.position.y = trans.transform.translation.y
+            msg_loc.pose.pose.position.z = trans.transform.translation.z
+            msg_loc.pose.header.frame_id = trans.header.frame_id
+            msg_loc.pose.header.stamp = trans.header.stamp
+            s_history.located_measurements.append(msg_loc)
             if self.utm_zone_number and self.utm_zone_letter:
-                msgl.utm_zone_number = self.utm_zone_number
-                msgl.utm_zone_letter = self.utm_zone_letter
+                msg_loc.utm_zone_number = self.utm_zone_number
+                msg_loc.utm_zone_letter = self.utm_zone_letter
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             self.ros_node.get_logger().info("[callback_measurement] Could not find TF2 lookup between frames [{0}] and [{1}]".format(
                 self.global_frame, msg.header.frame_id
             ))
             return
-        msga = MeasurementArray()
-        msga.full_history = False
-        msga.located_measurements.append(msgl)
-        self.pub_measurement_array.publish(msga)
+        msg_array = MeasurementArray()
+        msg_array.full_history = False
+        msg_array.located_measurements.append(msg_loc)
+        self.pub_measurement_array.publish(msg_array)
 
     def callback_measurement_located(self, msg):
         # type: (MeasurementLocated) -> None
@@ -148,29 +153,29 @@ class MeasurementCollectorNode():#rospy.SubscribeListener
         s_history: MeasurementArray = self.sensor_histories[msg.measurement.unique_serial_id]
         s_history.located_measurements.append(msg)
 
-        msga = MeasurementArray()
-        msga.full_history = False
-        msga.located_measurements.append(msg)
-        self.pub_measurement_array.publish(msga)
+        msg_array = MeasurementArray()
+        msg_array.full_history = False
+        msg_array.located_measurements.append(msg)
+        self.pub_measurement_array.publish(msg_array)
 
     def callback_measurement_array(self, msg):
         # clear if this message has full history
         if msg.full_history:
             ids: Set[str] = set()
-            for msmnt in msg.measurements:
-                ids.add(msmnt.unique_serial_id)
-            for msmnt in msg.located_measurements:
-                ids.add(msmnt.measurement.unique_serial_id)
+            for item in msg.measurements:
+                ids.add(item.unique_serial_id)
+            for item in msg.located_measurements:
+                ids.add(item.measurement.unique_serial_id)
             for id in ids:
                 if id in self.sensor_histories:
                     del self.sensor_histories[id]
 
         # add to history
-        for msmnt in msg.measurements:
-            self.callback_measurement(msmnt)
+        for item in msg.measurements:
+            self.callback_measurement(item)
 
-        for msmnt in msg.located_measurements:
-            self.callback_measurement_located(msmnt)
+        for item in msg.located_measurements:
+            self.callback_measurement_located(item)
         self.pub_measurement_array.publish(msg)
 
     def peer_subscribe(self, topic_name, topic_publish, peer_publish):
@@ -186,15 +191,15 @@ class MeasurementCollectorNode():#rospy.SubscribeListener
         if (msg.data > 0):
             threading.Timer(3., self.peer_subscribe, ('new_client_count', None, None)).start()
 
+
 # Main function
 if __name__ == '__main__':
     rclpy.init(args=sys.argv)
     node = rclpy.create_node('measurement_collector_node')
     executor = rclpy.executors.SingleThreadedExecutor()
     executor.add_node(node)
-    
 
-    mes = MeasurementCollectorNode()
+    mes = MeasurementCollectorNode(node)
     try:
         executor.spin()
     except KeyboardInterrupt as e:
