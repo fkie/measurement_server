@@ -12,7 +12,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         # ('share/' + package_name + 'config',
         #  ['config/measurement_server_configs.yaml', 'config/sensor_simulator_config.yaml']),
-        ('share/' + package_name + 'launch', ['launch/measurement_collector.launch.xml']),
+        ('share/' + package_name + '/launch', ['launch/measurement_collector.launch.xml']),
     ],
     install_requires=['setuptools', 'fkie_measurement_msgs', 'geometry_msgs', 'nav_msgs', 'visualization_msgs'],
     zip_safe=True,
