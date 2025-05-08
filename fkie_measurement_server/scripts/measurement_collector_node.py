@@ -28,16 +28,19 @@ from geodesy import utm
 
 from std_msgs.msg import Int32
 from fkie_measurement_msgs.msg import Measurement, MeasurementArray, MeasurementLocated, MeasurementValue
+from fkie_measurement_server_msgs.msg import CommandIn, CommandOut
 
 
 class MeasurementCollectorNode():
     def __init__(self, node: Node):
         super(MeasurementCollectorNode, self).__init__()
         self.ros_node = node
-        self.ros_node.get_logger().info('Launch parameter:')
+        self.ros_node.get_logger().info('Launch parameters:')
 
         self.ros_node.declare_parameter('param_topic_pub_measurement_array', '')
         self.ros_node.declare_parameter('param_topic_sub_measurement_array', '')
+        self.ros_node.declare_parameter('param_topic_command_in', '')
+        self.ros_node.declare_parameter('param_topic_command_out', '')
         self.ros_node.declare_parameter('global_frame', '')
         self.ros_node.declare_parameter('utm_zone_number', 32)
         self.ros_node.declare_parameter('utm_zone_letter', 'U')
@@ -50,6 +53,14 @@ class MeasurementCollectorNode():
         self.param_topic_sub_measurement_array = self.ros_node.get_parameter_or(
             'topic_sub_measurement_array', 'measurement_array')
         self.ros_node.get_logger().info(f"  topic_sub_measurement_array: {self.param_topic_sub_measurement_array}")
+
+        self.param_topic_command_out = self.ros_node.get_parameter_or(
+            'topic_command_out', 'commandout')
+        self.ros_node.get_logger().info(f"  param_topic_command_out: {self.param_topic_command_out}")
+
+        self.param_topic_command_in = self.ros_node.get_parameter_or(
+            'topic_command_in', 'commandin')
+        self.ros_node.get_logger().info(f"  param_topic_command_in: {self.param_topic_command_in}")
 
         self.global_frame = self.ros_node.get_parameter_or('frame_global', "map")
         self.ros_node.get_logger().info(f"  frame_global: {self.global_frame}")
@@ -94,12 +105,35 @@ class MeasurementCollectorNode():
 
         self.sub_client_count = self.ros_node.create_subscription(Int32, '/client_count', self.callback_client_count, 5)
 
+        # create subscribers for command manager
+        self.commandout = self.ros_node.create_publisher(
+            CommandOut, self.param_topic_command_out, 5)
+        self.ros_node.get_logger().info(f"advertised to {self.commandout.topic_name}")
+
+        self.commandin = self.ros_node.create_subscription(
+            CommandIn, self.param_topic_command_in, self.callback_command, 5)
+        self.ros_node.get_logger().info(f"subscribed to {self.commandin.topic_name}")
+
     def cb_fix(self, msg):
         utm_point = utm.fromLatLong(
             msg.latitude, msg.longitude, msg.altitude)
         if utm_point.valid():
             self.fix_timestamp = msg.header.stamp
             self.utm_position = utm_point
+
+    def callback_command(self, msg):
+        self.ros_node.get_logger().info(f"Command called: {msg.command}")
+        match msg.command:
+            case "history":
+                history = MeasurementArray()
+                history.full_history = True
+                for _id, ma in self.sensor_histories.items():
+                    history.measurements.extend(ma.measurements)
+                    history.located_measurements.extend(ma.located_measurements)
+                self.pub_measurement_array.publish(history)
+            case _:
+                pass
+        
 
     def callback_measurement(self, msg):
         # type: (Measurement) -> None

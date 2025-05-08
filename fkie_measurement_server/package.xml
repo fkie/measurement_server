@@ -2,11 +2,12 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>fkie_measurement_server</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>Collects and storages measurement data of any number of sensors</description>
   <maintainer email="alexander.tiderko@fkie.fraunhofer.de">Alexander Tiderko</maintainer>
   <license>Apache License 2.0</license>
 
+  <depend>fkie_measurement_server_msgs</depend>
   <depend>fkie_measurement_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
