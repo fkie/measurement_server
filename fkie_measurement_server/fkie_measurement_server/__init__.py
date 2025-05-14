@@ -15,7 +15,28 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import fkie_measurement_server
+import sys
 
-if __name__ == '__main__':
-    fkie_measurement_server.main()
+from fkie_measurement_server.measurement_server import MeasurementCollectorNode
+
+import rclpy
+import rclpy.executors
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = MeasurementCollectorNode()
+    try:
+        rclpy.spin(node)
+    except (KeyboardInterrupt, rclpy.executors.ExternalShutdownException):
+        pass
+    except Exception as err:
+        import traceback
+
+        print(traceback.format_exc())
+        print("Error while initialize ROS-Node: %s" % (err), file=sys.stderr)
+    finally:
+        print("Shutdown...")
+        node.stop()
+        node.destroy_node()
+        print("Bye!")
