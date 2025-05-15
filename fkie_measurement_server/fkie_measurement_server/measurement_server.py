@@ -25,6 +25,7 @@ import tf2_ros
 
 from .subscriptions import SubscriptionManager
 from .commands import CommandManager
+from .websocket import WebsocketManager
 
 
 class MeasurementCollectorNode(Node):
@@ -72,6 +73,7 @@ class MeasurementCollectorNode(Node):
 
         self.sub_manager = SubscriptionManager(node=self)
         self.command_manager = CommandManager(node=self)
+        self.websocket_manager = WebsocketManager(node=self)
 
         self.get_logger().info(' ')
 
