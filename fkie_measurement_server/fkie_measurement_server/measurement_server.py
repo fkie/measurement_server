@@ -46,6 +46,7 @@ class MeasurementCollectorNode(Node):
         self.declare_parameter('utm_zone_number', 32)
         self.declare_parameter('utm_zone_letter', 'U')
         self.declare_parameter('topic_fix', "fix")
+        self.declare_parameter('websocket_port', 8899)
 
         self.topic_pub_measurement_array = self.get_parameter('topic_pub_measurement_array').get_parameter_value().string_value
         self.topic_sub_measurement_array = self.get_parameter('topic_sub_measurement_array').get_parameter_value().string_value
@@ -55,6 +56,7 @@ class MeasurementCollectorNode(Node):
         self.utm_zone_number = self.get_parameter('utm_zone_number').get_parameter_value().integer_value
         self.utm_zone_letter = self.get_parameter('utm_zone_letter').get_parameter_value().string_value
         self.topic_fix = self.get_parameter('topic_fix').get_parameter_value().string_value
+        self.websocket_port = self.get_parameter('websocket_port').get_parameter_value().integer_value
 
         self.get_logger().info(' ')
         self.get_logger().info('Started with parameters:')
@@ -66,6 +68,7 @@ class MeasurementCollectorNode(Node):
         self.get_logger().info(f'  utm_zone_number: {self.utm_zone_number}')
         self.get_logger().info(f'  utm_zone_letter: {self.utm_zone_letter}')
         self.get_logger().info(f'  topic_fix: {self.topic_fix}')
+        self.get_logger().info(f'  websocket port: {self.websocket_port}')
         self.get_logger().info(' ')
 
         self.pub_measurement_array = self.create_publisher(MeasurementArray, self.topic_pub_measurement_array, 5)
@@ -73,7 +76,7 @@ class MeasurementCollectorNode(Node):
 
         self.sub_manager = SubscriptionManager(node=self)
         self.command_manager = CommandManager(node=self)
-        self.websocket_manager = WebsocketManager(node=self)
+        self.websocket_manager = WebsocketManager(node=self, port=self.websocket_port)
 
         self.get_logger().info(' ')
 

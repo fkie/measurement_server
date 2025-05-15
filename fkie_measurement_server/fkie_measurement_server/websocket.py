@@ -24,9 +24,10 @@ import json
 
 
 class WebsocketManager():
-    def __init__(self, node=None):
+    def __init__(self, node=None, port=8899):
         self.node = node
         self.websocket = None
+        self.websocket_port = port
         self.loop = asyncio.new_event_loop()
 
         self.node.get_logger().info(' ')
@@ -39,7 +40,7 @@ class WebsocketManager():
 
     def run_server(self):
         asyncio.set_event_loop(self.loop)
-        self.websocket = websockets.serve(self.handler, 'localhost', 8899)
+        self.websocket = websockets.serve(self.handler, 'localhost', self.websocket_port)
 
         # this is misleading, as this only creates the websocket server but does not run it
         # it converts the websockets.legacy.server.Serve class into a Future and awaits its completion
@@ -55,7 +56,7 @@ class WebsocketManager():
                 message = await websocket.recv()
                 self.handle_message(message)
         except websockets.exceptions.ConnectionClosedOK:
-            self.node.get_logger().info('Websocket closed gracefully')
+            pass
 
     def handle_message(self, message):
         try:
