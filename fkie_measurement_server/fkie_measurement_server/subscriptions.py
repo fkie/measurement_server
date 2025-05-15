@@ -30,19 +30,19 @@ class SubscriptionManager():
         self.node.get_logger().info('Initializing Subscription Manager...')
 
         self.sub_m = self.node.create_subscription(Measurement, '/in_measurement', self.callback_measurement, 5)
-        self.node.get_logger().info(f"Subscribed to {self.sub_m.topic_name}")
+        self.node.get_logger().info(f" Subscribed to {self.sub_m.topic_name}")
 
         self.sub_m_located = self.node.create_subscription(
             MeasurementLocated, '/in_measurement_located', self.callback_measurement_located, 5)
-        self.node.get_logger().info(f"Subscribed to {self.sub_m_located.topic_name}")
+        self.node.get_logger().info(f" Subscribed to {self.sub_m_located.topic_name}")
 
         self.sub_m_array = self.node.create_subscription(
             MeasurementArray, self.node.topic_sub_measurement_array, self.callback_measurement_array, 5)
-        self.node.get_logger().info(f"Subscribed to {self.sub_m_array.topic_name}")
+        self.node.get_logger().info(f" Subscribed to {self.sub_m_array.topic_name}")
 
         if self.node.topic_fix:
             self.topic_sub_fix = self.node.create_subscription(NavSatFix, self.node.topic_fix, self.cb_fix, 5)
-            self.node.get_logger().info(f"Subscribed to {self.topic_sub_fix.topic_name}")
+            self.node.get_logger().info(f" Subscribed to {self.topic_sub_fix.topic_name}")
 
         self.node.get_logger().info('Subscription Manager Initialized.')
 

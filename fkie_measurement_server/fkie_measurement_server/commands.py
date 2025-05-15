@@ -29,12 +29,12 @@ class CommandManager:
         self.commandin = self.node.create_subscription(
             CommandIn, self.node.topic_command_in, self.callback_command, 5
         )
-        self.node.get_logger().info(f"Subscribed to {self.commandin.topic_name}")
+        self.node.get_logger().info(f" Subscribed to {self.commandin.topic_name}")
 
         self.commandout = self.node.create_publisher(
             CommandOut, self.node.topic_command_out, 5
         )
-        self.node.get_logger().info(f"Advertising to {self.commandout.topic_name}")
+        self.node.get_logger().info(f" Advertising to {self.commandout.topic_name}")
 
         self.node.get_logger().info("Command Manager Initialized.")
 
