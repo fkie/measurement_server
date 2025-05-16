@@ -23,7 +23,7 @@ import asyncio
 import json
 
 
-class WebsocketManager():
+class WebsocketManager:
     def __init__(self, node=None, port=8899):
         self.node = node
         self.websocket = None

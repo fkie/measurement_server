@@ -22,7 +22,7 @@ from typing import Set
 import tf2_ros
 
 
-class SubscriptionManager():
+class SubscriptionManager:
     def __init__(self, node=None):
         self.node = node
 
