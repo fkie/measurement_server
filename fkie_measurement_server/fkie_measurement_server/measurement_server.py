@@ -138,18 +138,24 @@ class MeasurementCollectorNode(Node):
         utm_zone_number = data.get('utm_zone_number')  # optional
         utm_zone_letter = data.get('utm_zone_letter')  # optional
         unique_serial_id = data.get('unique_serial_id')  # required
-        manufacturer_device_name = data.get('manufacturer_device_name')  # required
-        device_classification = data.get('device_classification')  # required
+        manufacturer_device_name = data.get('manufacturer_device_name')  # optional
+        device_classification = data.get('device_classification')  # optional
         sensor = data.get('sensor')  # required
         source_type = data.get('source_type')  # required
         unit = data.get('unit')  # required
         value = data.get('value')  # required
 
-        if not(unique_serial_id and manufacturer_device_name and device_classification and sensor and source_type and unit and value):
+        if not(unique_serial_id and sensor and source_type and unit and value):
             self.get_logger().warn(
                 f"[{type}] Required fields missing."
             )
             return
+        
+        if not manufacturer_device_name:
+            manufacturer_device_name = unique_serial_id
+
+        if not device_classification:
+            device_classification = ""
             
         if unique_serial_id not in self.sensor_histories:
             ma = MeasurementArray()
