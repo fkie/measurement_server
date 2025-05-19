@@ -32,7 +32,12 @@ class WebServerManager:
         """
         Start the Flask web server.
         """
-        self.app.run(port=self.port)
+        # This is the development server bundled with flask
+        # self.app.run(port=self.port)
+
+        # This is a production server
+        from waitress import serve
+        serve(self.app, host="0.0.0.0", port=self.port)
 
     def receive_measurement(self):
         """
