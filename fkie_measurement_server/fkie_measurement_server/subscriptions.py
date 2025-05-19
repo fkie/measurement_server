@@ -22,8 +22,14 @@ from typing import Set
 import tf2_ros
 
 
-class SubscriptionManager():
+class SubscriptionManager:
+    """
+    Manage subscriptions for the measurement collector
+    """
     def __init__(self, node=None):
+        """
+        Create subscriptions to measurement topics
+        """
         self.node = node
 
         self.node.get_logger().info(' ')
@@ -47,6 +53,9 @@ class SubscriptionManager():
         self.node.get_logger().info('Subscription Manager Initialized.')
 
     def callback_measurement(self, msg):
+        """
+        Method called when a measurement is received on /in_measurement 
+        """
         if not msg.unique_serial_id:
             self.node.get_logger().error(
                 "[callback_measurement] empty [unique_serial_id]."
@@ -93,6 +102,9 @@ class SubscriptionManager():
         self.node.pub_measurement_array.publish(msg_array)
 
     def callback_measurement_located(self, msg):
+        """
+        Method called when a measurement is received on /in_measurement_located 
+        """
         if not msg.measurement.unique_serial_id:
             self.node.get_logger().error(
                 "[callback_measurement_located] empty [unique_serial_id]."
@@ -115,6 +127,9 @@ class SubscriptionManager():
         self.node.pub_measurement_array.publish(msg_array)
 
     def callback_measurement_array(self, msg):
+        """
+        Method called when a measurement is received on topic_sub_measurement_array 
+        """
         # clear if this message has full history
         if msg.full_history:
             ids: Set[str] = set()

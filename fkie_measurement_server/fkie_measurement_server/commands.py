@@ -20,6 +20,9 @@ from fkie_measurement_msgs.msg import MeasurementArray
 
 
 class CommandManager:
+    """
+    A simple framework to receive commands from connected clients.
+    """
     def __init__(self, node=None):
         self.node = node
 
@@ -39,6 +42,9 @@ class CommandManager:
         self.node.get_logger().info("Command Manager Initialized.")
 
     def callback_command(self, msg):
+        """
+        Method called when a command is received
+        """
         self.node.get_logger().info(f"Command called: {msg.command}")
         match msg.command:
             case "history":
