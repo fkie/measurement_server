@@ -21,6 +21,7 @@ from threading import Thread
 import websockets
 import asyncio
 import json
+import time
 
 
 class WebsocketManager:
@@ -62,37 +63,83 @@ class WebsocketManager:
         try:
             json_data = json.loads(message)
 
-            if not json_data['unique_serial_id']:
+            # extract json parameters
+            frame_id = json_data.get('frame_id')  # optional
+            stamp_sec = json_data.get('stamp_sec')  # optional
+            stamp_nanosec = json_data.get('stamp_nanosec')  # optional
+            position_x = json_data.get('position_x')  # optional
+            position_y = json_data.get('position_y')  # optional
+            position_z = json_data.get('position_z')  # optional
+            orientation_x = json_data.get('orientation_x')  # optional
+            orientation_y = json_data.get('orientation_y')  # optional
+            orientation_z = json_data.get('orientation_z')  # optional
+            orientation_w = json_data.get('orientation_w')  # optional
+            utm_zone_number = json_data.get('utm_zone_number')  # optional
+            utm_zone_letter = json_data.get('utm_zone_letter')  # optional
+            unique_serial_id = json_data.get('unique_serial_id')  # required
+            manufacturer_device_name = json_data.get('manufacturer_device_name')  # required
+            device_classification = json_data.get('device_classification')  # required
+            sensor = json_data.get('sensor')  # required
+            source_type = json_data.get('source_type')  # required
+            unit = json_data.get('unit')  # required
+            value = json_data.get('value')  # required
+
+            if not unique_serial_id:
                 self.node.get_logger().error(
                     "[callback_measurement] empty [unique_serial_id]."
                 )
                 return
             
-            if json_data['unique_serial_id'] not in self.node.sensor_histories:
+            if unique_serial_id not in self.node.sensor_histories:
                 ma = MeasurementArray()
                 ma.full_history = True
-                self.node.sensor_histories[json_data['unique_serial_id']] = ma
+                self.node.sensor_histories[unique_serial_id] = ma
 
-            s_history: MeasurementArray = self.node.sensor_histories[json_data['unique_serial_id']]
+            s_history: MeasurementArray = self.node.sensor_histories[unique_serial_id]
 
-            # Located Measurement
+           # Located Measurement
             msg_loc = MeasurementLocated()
-            msg_loc.pose.pose.position.x = float(json_data['position']['x'])
-            msg_loc.pose.pose.position.y = float(json_data['position']['y'])
-            msg_loc.pose.pose.position.z = float(json_data['position']['z'])
-            msg_loc.pose.pose.orientation.x = float(json_data['orientation']['x'])
-            msg_loc.pose.pose.orientation.y = float(json_data['orientation']['y'])
-            msg_loc.pose.pose.orientation.z = float(json_data['orientation']['z'])
-            msg_loc.pose.pose.orientation.w = float(json_data['orientation']['w'])
-            msg_loc.pose.header.frame_id = json_data['frame_id']
-            msg_loc.pose.header.stamp.sec = int(json_data['stamp']['sec'])
-            msg_loc.pose.header.stamp.nanosec = int(json_data['stamp']['nanosec'])
-            msg_loc.measurement.header.frame_id = json_data['frame_id']
-            msg_loc.measurement.header.stamp.sec = int(json_data['stamp']['sec'])
-            msg_loc.measurement.header.stamp.nanosec = int(json_data['stamp']['nanosec'])
-            msg_loc.measurement.unique_serial_id = json_data['unique_serial_id']
-            msg_loc.measurement.manufacturer_device_name = json_data['manufacturer_device_name']
-            msg_loc.measurement.device_classification = json_data['device_classification']
+            if position_x and position_y and position_x:
+                msg_loc.pose.pose.position.x = float(position_x)
+                msg_loc.pose.pose.position.y = float(position_y)
+                msg_loc.pose.pose.position.z = float(position_z)
+            else:
+                msg_loc.pose.pose.position.x = 0.0
+                msg_loc.pose.pose.position.y = 0.0
+                msg_loc.pose.pose.position.z = 0.0
+
+            if orientation_w and orientation_x and orientation_y and orientation_z:
+                msg_loc.pose.pose.orientation.x = float(orientation_x)
+                msg_loc.pose.pose.orientation.y = float(orientation_y)
+                msg_loc.pose.pose.orientation.z = float(orientation_z)
+                msg_loc.pose.pose.orientation.w = float(orientation_w)
+            else:
+                msg_loc.pose.pose.orientation.x = 0.0
+                msg_loc.pose.pose.orientation.y = 0.0
+                msg_loc.pose.pose.orientation.z = 0.0
+                msg_loc.pose.pose.orientation.w = 1.0
+
+            if stamp_sec and stamp_nanosec:
+                msg_loc.pose.header.stamp.sec = int(stamp_sec)
+                msg_loc.pose.header.stamp.nanosec = int(stamp_nanosec)
+                msg_loc.measurement.header.stamp.sec = int(stamp_sec)
+                msg_loc.measurement.header.stamp.nanosec = int(stamp_nanosec)
+            else:
+                msg_loc.pose.header.stamp.sec = int(time.time())
+                msg_loc.pose.header.stamp.nanosec = 0
+                msg_loc.measurement.header.stamp.sec = int(time.time())
+                msg_loc.measurement.header.stamp.nanosec = 0
+
+            if frame_id:
+                msg_loc.pose.header.frame_id = frame_id
+                msg_loc.measurement.header.frame_id = frame_id
+            else: 
+                msg_loc.pose.header.frame_id = ""
+                msg_loc.measurement.header.frame_id = ""
+
+            msg_loc.measurement.unique_serial_id = unique_serial_id
+            msg_loc.measurement.manufacturer_device_name = manufacturer_device_name
+            msg_loc.measurement.device_classification = device_classification
 
             if self.node.utm_zone_number and self.node.utm_zone_letter:
                 msg_loc.utm_zone_number = self.node.utm_zone_number
@@ -102,14 +149,22 @@ class WebsocketManager:
 
             # Measurement Value
             msg_value = MeasurementValue()
-            msg_value.begin.sec = int(json_data['stamp']['sec'])
-            msg_value.begin.nanosec = int(json_data['stamp']['nanosec'])
-            msg_value.end.sec = int(json_data['stamp']['sec'])
-            msg_value.end.nanosec = int(json_data['stamp']['nanosec'])
-            msg_value.sensor = json_data['sensor']
-            msg_value.source_type = json_data['source_type']
-            msg_value.unit = json_data['unit']
-            msg_value.value_single = float(json_data['value'])
+
+            if stamp_sec and stamp_nanosec:
+                msg_value.begin.sec = int(stamp_sec)
+                msg_value.begin.nanosec = int(stamp_nanosec)
+                msg_value.end.sec = int(stamp_sec)
+                msg_value.end.nanosec = int(stamp_nanosec)
+            else:
+                msg_value.begin.sec = int(time.time())
+                msg_value.begin.nanosec = 0
+                msg_value.end.sec = int(time.time())
+                msg_value.end.nanosec = 0
+
+            msg_value.sensor = sensor
+            msg_value.source_type = source_type
+            msg_value.unit = unit
+            msg_value.value_single = float(value)
             msg_loc.measurement.values.append(msg_value)
 
             # Final Message
@@ -183,5 +238,10 @@ Test JSON:
     "value": 6
 }
 
+Test string:
 {"frame_id":"world","stamp":{"sec":5000,"nanosec":5000},"position":{"x":366188,"y":5609559,"z":255},"orientation":{"x":0,"y":0,"z":0,"w":1},"utm_zone_number":32,"utm_zone_letter":"U","unique_serial_id":"T-4000","manufacturer_device_name":"Terminator Modell 4000","device_classification":"T","sensor":"threat-level","source_type":"visual","unit":"of 10","value":6}
+
+Minimal test string:
+{"unique_serial_id":"T-4000","manufacturer_device_name":"Terminator Modell 4000","device_classification":"T","sensor":"threat-level","source_type":"visual","unit":"of 10","value":6}
+
 '''
