@@ -146,5 +146,5 @@ Test string:
 {"frame_id":"world","stamp":{"sec":5000,"nanosec":5000},"position":{"x":366188,"y":5609559,"z":255},"orientation":{"x":0,"y":0,"z":0,"w":1},"utm_zone_number":32,"utm_zone_letter":"U","unique_serial_id":"T-4000","manufacturer_device_name":"Terminator Modell 4000","device_classification":"T","sensor":"threat-level","source_type":"visual","unit":"of 10","value":6}
 
 Minimal test string:
-{"unique_serial_id":"T-4000","sensor":"threat-level","source_type":"visual","unit":"of 10","value":6}
+{"unique_serial_id":"T-4000","sensor":"threat-level","value":6}
 '''

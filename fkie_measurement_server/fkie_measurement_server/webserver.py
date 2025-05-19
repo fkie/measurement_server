@@ -54,5 +54,5 @@ Test string:
 curl -X POST "http://localhost:8080/?frame_id=world&stamp_sec=5000&stamp_nanosec=5000&position_x=366188&position_y=5609559&position_z=255&orientation_x=0.0&orientation_y=0&orientation_z=0&orientation_w=1&utm_zone_number=32&utm_zone_letter=U&unique_serial_id=T-4000&manufacturer_device_name=Terminator%20Modell%204000&device_classification=T&sensor=threat-level&source_type=visual&unit=of%2010&value=6"
 
 Minimal test string:
-curl -X POST "http://localhost:8080/?unique_serial_id=T-4000&sensor=threat-level&source_type=visual&unit=of%2010&value=6"
+curl -X POST "http://localhost:8080/?unique_serial_id=T-4000&sensor=threat-level&value=6"
 """

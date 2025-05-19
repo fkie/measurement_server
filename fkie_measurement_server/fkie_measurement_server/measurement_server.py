@@ -141,11 +141,11 @@ class MeasurementCollectorNode(Node):
         manufacturer_device_name = data.get('manufacturer_device_name')  # optional
         device_classification = data.get('device_classification')  # optional
         sensor = data.get('sensor')  # required
-        source_type = data.get('source_type')  # required
-        unit = data.get('unit')  # required
+        source_type = data.get('source_type')  # optional
+        unit = data.get('unit')  # optional
         value = data.get('value')  # required
 
-        if not(unique_serial_id and sensor and source_type and unit and value):
+        if not(unique_serial_id and sensor and value):
             self.get_logger().warn(
                 f"[{type}] Required fields missing."
             )
@@ -156,6 +156,12 @@ class MeasurementCollectorNode(Node):
 
         if not device_classification:
             device_classification = ""
+        
+        if not source_type:
+            source_type = ""
+
+        if not unit:
+            unit = ""
             
         if unique_serial_id not in self.sensor_histories:
             ma = MeasurementArray()
