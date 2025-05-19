@@ -67,6 +67,9 @@ class WebServerManager:
             value = request.args.get('value')  # required
 
             if not(manufacturer_device_name and device_classification and sensor and source_type and unit and value):
+                self.node.get_logger().warn(
+                    "[webserver] Required fields missing."
+                )
                 return jsonify({"status": "error", "message": "Required values missing."}), 400
 
             if unique_serial_id not in self.node.sensor_histories:
