@@ -84,9 +84,9 @@ class WebsocketManager:
             unit = json_data.get('unit')  # required
             value = json_data.get('value')  # required
 
-            if not unique_serial_id:
-                self.node.get_logger().error(
-                    "[callback_measurement] empty [unique_serial_id]."
+            if not(manufacturer_device_name and device_classification and sensor and source_type and unit and value):
+                self.node.get_logger().warn(
+                    "[websocket] Required fields missing."
                 )
                 return
             
