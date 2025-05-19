@@ -126,7 +126,7 @@ class MeasurementCollectorNode(Node):
         unit = data.get('unit')  # required
         value = data.get('value')  # required
 
-        if not(manufacturer_device_name and device_classification and sensor and source_type and unit and value):
+        if not(unique_serial_id and manufacturer_device_name and device_classification and sensor and source_type and unit and value):
             self.get_logger().warn(
                 f"[{type}] Required fields missing."
             )
