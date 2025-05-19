@@ -1,5 +1,6 @@
 from threading import Thread
 
+import time
 from flask import Flask, jsonify, request
 from fkie_measurement_msgs.msg import MeasurementValue, MeasurementArray, MeasurementLocated
 
@@ -45,26 +46,28 @@ class WebServerManager:
         """
         try:
             # extract query parameters
-            # because we use request.args[] instead of request.args.get(), it will immediately throw an error if a value is missing
-            frame_id = request.args['frame_id']
-            stamp_sec = request.args['stamp_sec']
-            stamp_nanosec = request.args['stamp_nanosec']
-            position_x = request.args['position_x']
-            position_y = request.args['position_y']
-            position_z = request.args['position_z']
-            orientation_x = request.args['orientation_x']
-            orientation_y = request.args['orientation_y']
-            orientation_z = request.args['orientation_z']
-            orientation_w = request.args['orientation_w']
-            utm_zone_number = request.args['utm_zone_number']
-            utm_zone_letter = request.args['utm_zone_letter']
-            unique_serial_id = request.args['unique_serial_id']
-            manufacturer_device_name = request.args['manufacturer_device_name']
-            device_classification = request.args['device_classification']
-            sensor = request.args['sensor']
-            source_type = request.args['source_type']
-            unit = request.args['unit']
-            value = request.args['value']
+            frame_id = request.args.get('frame_id')  # optional
+            stamp_sec = request.args.get('stamp_sec')  # optional
+            stamp_nanosec = request.args.get('stamp_nanosec')  # optional
+            position_x = request.args.get('position_x')  # optional
+            position_y = request.args.get('position_y')  # optional
+            position_z = request.args.get('position_z')  # optional
+            orientation_x = request.args.get('orientation_x')  # optional
+            orientation_y = request.args.get('orientation_y')  # optional
+            orientation_z = request.args.get('orientation_z')  # optional
+            orientation_w = request.args.get('orientation_w')  # optional
+            utm_zone_number = request.args.get('utm_zone_number')  # optional
+            utm_zone_letter = request.args.get('utm_zone_letter')  # optional
+            unique_serial_id = request.args.get('unique_serial_id')  # required
+            manufacturer_device_name = request.args.get('manufacturer_device_name')  # required
+            device_classification = request.args.get('device_classification')  # required
+            sensor = request.args.get('sensor')  # required
+            source_type = request.args.get('source_type')  # required
+            unit = request.args.get('unit')  # required
+            value = request.args.get('value')  # required
+
+            if not(manufacturer_device_name and device_classification and sensor and source_type and unit and value):
+                return jsonify({"status": "error", "message": "Required values missing."}), 400
 
             if unique_serial_id not in self.node.sensor_histories:
                 ma = MeasurementArray()
@@ -75,19 +78,44 @@ class WebServerManager:
 
             # Located Measurement
             msg_loc = MeasurementLocated()
-            msg_loc.pose.pose.position.x = float(position_x)
-            msg_loc.pose.pose.position.y = float(position_y)
-            msg_loc.pose.pose.position.z = float(position_z)
-            msg_loc.pose.pose.orientation.x = float(orientation_x)
-            msg_loc.pose.pose.orientation.y = float(orientation_y)
-            msg_loc.pose.pose.orientation.z = float(orientation_z)
-            msg_loc.pose.pose.orientation.w = float(orientation_w)
-            msg_loc.pose.header.frame_id = frame_id
-            msg_loc.pose.header.stamp.sec = int(stamp_sec)
-            msg_loc.pose.header.stamp.nanosec = int(stamp_nanosec)
-            msg_loc.measurement.header.frame_id = frame_id
-            msg_loc.measurement.header.stamp.sec = int(stamp_sec)
-            msg_loc.measurement.header.stamp.nanosec = int(stamp_nanosec)
+            if position_x and position_y and position_x:
+                msg_loc.pose.pose.position.x = float(position_x)
+                msg_loc.pose.pose.position.y = float(position_y)
+                msg_loc.pose.pose.position.z = float(position_z)
+            else:
+                msg_loc.pose.pose.position.x = 0.0
+                msg_loc.pose.pose.position.y = 0.0
+                msg_loc.pose.pose.position.z = 0.0
+
+            if orientation_w and orientation_x and orientation_y and orientation_z:
+                msg_loc.pose.pose.orientation.x = float(orientation_x)
+                msg_loc.pose.pose.orientation.y = float(orientation_y)
+                msg_loc.pose.pose.orientation.z = float(orientation_z)
+                msg_loc.pose.pose.orientation.w = float(orientation_w)
+            else:
+                msg_loc.pose.pose.orientation.x = 0.0
+                msg_loc.pose.pose.orientation.y = 0.0
+                msg_loc.pose.pose.orientation.z = 0.0
+                msg_loc.pose.pose.orientation.w = 1.0
+
+            if stamp_sec and stamp_nanosec:
+                msg_loc.pose.header.stamp.sec = int(stamp_sec)
+                msg_loc.pose.header.stamp.nanosec = int(stamp_nanosec)
+                msg_loc.measurement.header.stamp.sec = int(stamp_sec)
+                msg_loc.measurement.header.stamp.nanosec = int(stamp_nanosec)
+            else:
+                msg_loc.pose.header.stamp.sec = int(time.time())
+                msg_loc.pose.header.stamp.nanosec = 0
+                msg_loc.measurement.header.stamp.sec = int(time.time())
+                msg_loc.measurement.header.stamp.nanosec = 0
+
+            if frame_id:
+                msg_loc.pose.header.frame_id = frame_id
+                msg_loc.measurement.header.frame_id = frame_id
+            else: 
+                msg_loc.pose.header.frame_id = ""
+                msg_loc.measurement.header.frame_id = ""
+
             msg_loc.measurement.unique_serial_id = unique_serial_id
             msg_loc.measurement.manufacturer_device_name = manufacturer_device_name
             msg_loc.measurement.device_classification = device_classification
@@ -100,10 +128,18 @@ class WebServerManager:
 
             # Measurement Value
             msg_value = MeasurementValue()
-            msg_value.begin.sec = int(stamp_sec)
-            msg_value.begin.nanosec = int(stamp_nanosec)
-            msg_value.end.sec = int(stamp_sec)
-            msg_value.end.nanosec = int(stamp_nanosec)
+
+            if stamp_sec and stamp_nanosec:
+                msg_value.begin.sec = int(stamp_sec)
+                msg_value.begin.nanosec = int(stamp_nanosec)
+                msg_value.end.sec = int(stamp_sec)
+                msg_value.end.nanosec = int(stamp_nanosec)
+            else:
+                msg_value.begin.sec = int(time.time())
+                msg_value.begin.nanosec = 0
+                msg_value.end.sec = int(time.time())
+                msg_value.end.nanosec = 0
+
             msg_value.sensor = sensor
             msg_value.source_type = source_type
             msg_value.unit = unit
@@ -124,4 +160,8 @@ class WebServerManager:
 """
 Test string:
 curl -X POST "http://localhost:8080/?frame_id=world&stamp_sec=5000&stamp_nanosec=5000&position_x=366188&position_y=5609559&position_z=255&orientation_x=0.0&orientation_y=0&orientation_z=0&orientation_w=1&utm_zone_number=32&utm_zone_letter=U&unique_serial_id=T-4000&manufacturer_device_name=Terminator%20Modell%204000&device_classification=T&sensor=threat-level&source_type=visual&unit=of%2010&value=6"
+
+Minimal test string:
+curl -X POST "http://localhost:8080/?unique_serial_id=T-4000&manufacturer_device_name=Terminator%20Modell%204000&device_classification=T&sensor=threat-level&source_type=visual&unit=of%2010&value=6"
+
 """
