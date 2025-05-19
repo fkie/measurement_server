@@ -60,6 +60,9 @@ class WebsocketManager:
         self.loop.close()
 
     async def handler(self, websocket):
+        """
+        Websocket loop
+        """
         try:
             while True:
                 message = await websocket.recv()
@@ -68,6 +71,9 @@ class WebsocketManager:
             pass
 
     def handle_message(self, message):
+        """
+        Method to call when receiving a measurement
+        """
         try:
             json_data = json.loads(message)
             self.create_message(json_data, "websocket")
@@ -141,5 +147,4 @@ Test string:
 
 Minimal test string:
 {"unique_serial_id":"T-4000","manufacturer_device_name":"Terminator Modell 4000","device_classification":"T","sensor":"threat-level","source_type":"visual","unit":"of 10","value":6}
-
 '''

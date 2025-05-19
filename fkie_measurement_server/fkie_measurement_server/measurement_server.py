@@ -31,7 +31,13 @@ from .websocket import WebsocketManager
 
 
 class MeasurementCollectorNode(Node):
+    """
+    A ROS node to collect measurement data from ROS Topics, websockets and POST requests
+    """
     def __init__(self):
+        """
+        Initialize the Node and start its managers
+        """
 
         super(MeasurementCollectorNode, self).__init__('measurement_collector_node')
 
@@ -89,7 +95,11 @@ class MeasurementCollectorNode(Node):
         self.sub_client_count = self.create_subscription(Int32, '/client_count', self.callback_client_count, 5)
 
     def peer_subscribe(self, topic_name, topic_publish, peer_publish):
+        """
+        Send sensor history to topic_pub_measurement_array
+        """
         self.get_logger().info(f"New subscription for {topic_name}")
+
         msg = MeasurementArray()
         msg.full_history = True
         for _id, ma in self.sensor_histories.items():
@@ -98,13 +108,22 @@ class MeasurementCollectorNode(Node):
         self.pub_measurement_array.publish(msg)
 
     def callback_client_count(self, msg):
+        """
+        Called when a new client (subscriber) is found on the topic_pub_measurement_array topic
+        """
         if (msg.data > 0):
             threading.Timer(3., self.peer_subscribe, ('new_client_count', None, None)).start()
 
     def stop(self):
+        """
+        Shut down the node, threads are stopped instantly as they are daemons
+        """
         self.get_logger().info("Shutting down...")
 
     def create_message(self, data, type):
+        """
+        Function to extract, parse and publish measurements
+        """
         # extract json parameters
         frame_id = data.get('frame_id')  # optional
         stamp_sec = data.get('stamp_sec')  # optional

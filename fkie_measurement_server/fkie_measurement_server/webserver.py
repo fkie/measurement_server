@@ -55,5 +55,4 @@ curl -X POST "http://localhost:8080/?frame_id=world&stamp_sec=5000&stamp_nanosec
 
 Minimal test string:
 curl -X POST "http://localhost:8080/?unique_serial_id=T-4000&manufacturer_device_name=Terminator%20Modell%204000&device_classification=T&sensor=threat-level&source_type=visual&unit=of%2010&value=6"
-
 """
