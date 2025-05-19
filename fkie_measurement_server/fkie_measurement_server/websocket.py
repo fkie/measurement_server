@@ -15,20 +15,25 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from fkie_measurement_msgs.msg import MeasurementValue, MeasurementArray, MeasurementLocated
-
 from threading import Thread
 import websockets
 import asyncio
 import json
-import time
 
 
 class WebsocketManager:
-    def __init__(self, node=None, port=8899):
+    """
+    A simple websocket to receive measurement data.
+    """
+    def __init__(self, node=None, port=8899, method=None):
+        """
+        Initialize the websocket and start it on a separate thread.
+        """
         self.node = node
         self.websocket = None
         self.websocket_port = port
+        self.create_message = method
+
         self.loop = asyncio.new_event_loop()
 
         self.node.get_logger().info(' ')
@@ -40,6 +45,9 @@ class WebsocketManager:
         self.node.get_logger().info('Websocket started successfully.')
 
     def run_server(self):
+        """
+        Start the websocket.
+        """
         asyncio.set_event_loop(self.loop)
         self.websocket = websockets.serve(self.handler, 'localhost', self.websocket_port)
 
@@ -62,117 +70,7 @@ class WebsocketManager:
     def handle_message(self, message):
         try:
             json_data = json.loads(message)
-
-            # extract json parameters
-            frame_id = json_data.get('frame_id')  # optional
-            stamp_sec = json_data.get('stamp_sec')  # optional
-            stamp_nanosec = json_data.get('stamp_nanosec')  # optional
-            position_x = json_data.get('position_x')  # optional
-            position_y = json_data.get('position_y')  # optional
-            position_z = json_data.get('position_z')  # optional
-            orientation_x = json_data.get('orientation_x')  # optional
-            orientation_y = json_data.get('orientation_y')  # optional
-            orientation_z = json_data.get('orientation_z')  # optional
-            orientation_w = json_data.get('orientation_w')  # optional
-            utm_zone_number = json_data.get('utm_zone_number')  # optional
-            utm_zone_letter = json_data.get('utm_zone_letter')  # optional
-            unique_serial_id = json_data.get('unique_serial_id')  # required
-            manufacturer_device_name = json_data.get('manufacturer_device_name')  # required
-            device_classification = json_data.get('device_classification')  # required
-            sensor = json_data.get('sensor')  # required
-            source_type = json_data.get('source_type')  # required
-            unit = json_data.get('unit')  # required
-            value = json_data.get('value')  # required
-
-            if not(manufacturer_device_name and device_classification and sensor and source_type and unit and value):
-                self.node.get_logger().warn(
-                    "[websocket] Required fields missing."
-                )
-                return
-            
-            if unique_serial_id not in self.node.sensor_histories:
-                ma = MeasurementArray()
-                ma.full_history = True
-                self.node.sensor_histories[unique_serial_id] = ma
-
-            s_history: MeasurementArray = self.node.sensor_histories[unique_serial_id]
-
-           # Located Measurement
-            msg_loc = MeasurementLocated()
-            if position_x and position_y and position_x:
-                msg_loc.pose.pose.position.x = float(position_x)
-                msg_loc.pose.pose.position.y = float(position_y)
-                msg_loc.pose.pose.position.z = float(position_z)
-            else:
-                msg_loc.pose.pose.position.x = 0.0
-                msg_loc.pose.pose.position.y = 0.0
-                msg_loc.pose.pose.position.z = 0.0
-
-            if orientation_w and orientation_x and orientation_y and orientation_z:
-                msg_loc.pose.pose.orientation.x = float(orientation_x)
-                msg_loc.pose.pose.orientation.y = float(orientation_y)
-                msg_loc.pose.pose.orientation.z = float(orientation_z)
-                msg_loc.pose.pose.orientation.w = float(orientation_w)
-            else:
-                msg_loc.pose.pose.orientation.x = 0.0
-                msg_loc.pose.pose.orientation.y = 0.0
-                msg_loc.pose.pose.orientation.z = 0.0
-                msg_loc.pose.pose.orientation.w = 1.0
-
-            if stamp_sec and stamp_nanosec:
-                msg_loc.pose.header.stamp.sec = int(stamp_sec)
-                msg_loc.pose.header.stamp.nanosec = int(stamp_nanosec)
-                msg_loc.measurement.header.stamp.sec = int(stamp_sec)
-                msg_loc.measurement.header.stamp.nanosec = int(stamp_nanosec)
-            else:
-                msg_loc.pose.header.stamp.sec = int(time.time())
-                msg_loc.pose.header.stamp.nanosec = 0
-                msg_loc.measurement.header.stamp.sec = int(time.time())
-                msg_loc.measurement.header.stamp.nanosec = 0
-
-            if frame_id:
-                msg_loc.pose.header.frame_id = frame_id
-                msg_loc.measurement.header.frame_id = frame_id
-            else: 
-                msg_loc.pose.header.frame_id = ""
-                msg_loc.measurement.header.frame_id = ""
-
-            msg_loc.measurement.unique_serial_id = unique_serial_id
-            msg_loc.measurement.manufacturer_device_name = manufacturer_device_name
-            msg_loc.measurement.device_classification = device_classification
-
-            if self.node.utm_zone_number and self.node.utm_zone_letter:
-                msg_loc.utm_zone_number = self.node.utm_zone_number
-                msg_loc.utm_zone_letter = self.node.utm_zone_letter
-
-            s_history.located_measurements.append(msg_loc)
-
-            # Measurement Value
-            msg_value = MeasurementValue()
-
-            if stamp_sec and stamp_nanosec:
-                msg_value.begin.sec = int(stamp_sec)
-                msg_value.begin.nanosec = int(stamp_nanosec)
-                msg_value.end.sec = int(stamp_sec)
-                msg_value.end.nanosec = int(stamp_nanosec)
-            else:
-                msg_value.begin.sec = int(time.time())
-                msg_value.begin.nanosec = 0
-                msg_value.end.sec = int(time.time())
-                msg_value.end.nanosec = 0
-
-            msg_value.sensor = sensor
-            msg_value.source_type = source_type
-            msg_value.unit = unit
-            msg_value.value_single = float(value)
-            msg_loc.measurement.values.append(msg_value)
-
-            # Final Message
-            msg_array = MeasurementArray()
-            msg_array.full_history = False
-            msg_array.located_measurements.append(msg_loc)
-
-            self.node.pub_measurement_array.publish(msg_array)
+            self.create_message(json_data, "websocket")
 
         except Exception as error:
             self.node.get_logger().warn(f'Could not parse message: {message}')
