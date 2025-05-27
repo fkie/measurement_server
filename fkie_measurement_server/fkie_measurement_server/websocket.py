@@ -87,21 +87,15 @@ class WebsocketManager:
 Websocket JSON Format:
 {
     frame_id: string
-    stamp: {
-        sec: number
-        nanosec: number
-    }
-    position: {
-        x: number
-        y: number
-        z: number
-    }
-    orientation: {
-        x: number
-        y: number
-        z: number
-        w: number
-    }
+    stamp_sec: number
+    stamp_nanosec: number
+    position_x: number
+    position_y: number
+    position_z: number
+    orientation_x: number
+    orientation_y: number
+    orientation_z: number
+    orientation_w: number
     utm_zone_number: number
     utm_zone_letter: string
     unique_serial_id: string
@@ -115,22 +109,15 @@ Websocket JSON Format:
 
 Test JSON:
 {
-    "frame_id": "world",
-    "stamp": {
-        "sec": 5000,
-        "nanosec": 5000
-    },
-    "position": {
-        "x": 366188,
-        "y": 5609559,
-        "z": 255
-    },
-    "orientation": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 1
-    },
+    "stamp_sec": 5000,
+    "stamp_nanosec": 5000,
+    "position_x": 366188,
+    "position_y": 5609559,
+    "position_z": 255,
+    "orientation_x": 0,
+    "orientation_y": 0,
+    "orientation_z": 0,
+    "orientation_w": 1,
     "utm_zone_number": 32,
     "utm_zone_letter": "U",
     "unique_serial_id": "T-4000",
@@ -143,7 +130,7 @@ Test JSON:
 }
 
 Test string:
-{"frame_id":"world","stamp":{"sec":5000,"nanosec":5000},"position":{"x":366188,"y":5609559,"z":255},"orientation":{"x":0,"y":0,"z":0,"w":1},"utm_zone_number":32,"utm_zone_letter":"U","unique_serial_id":"T-4000","manufacturer_device_name":"Terminator Modell 4000","device_classification":"T","sensor":"threat-level","source_type":"visual","unit":"of 10","value":6}
+{"stamp_sec":5000,"stamp_nanosec":5000,"position_x":366388,"position_y":5609559,"position_z":255,"orientation_x":0,"orientation_y":0,"orientation_z":0,"orientation_w":1,"utm_zone_number":32,"utm_zone_letter":"U","unique_serial_id":"T-4000","manufacturer_device_name":"TerminatorModell4000","device_classification":"T","sensor":"threat-level","source_type":"visual","unit":"of10","value":6}
 
 Minimal test string:
 {"unique_serial_id":"T-4000","sensor":"threat-level","value":6}
