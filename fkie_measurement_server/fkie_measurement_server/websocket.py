@@ -49,7 +49,7 @@ class WebsocketManager:
         Start the websocket.
         """
         asyncio.set_event_loop(self.loop)
-        self.websocket = websockets.serve(self.handler, 'localhost', self.websocket_port)
+        self.websocket = websockets.serve(self.handler, '0.0.0.0', self.websocket_port)
 
         # this is misleading, as this only creates the websocket server but does not run it
         # it converts the websockets.legacy.server.Serve class into a Future and awaits its completion
