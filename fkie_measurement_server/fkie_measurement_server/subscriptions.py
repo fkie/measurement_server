@@ -92,7 +92,7 @@ class SubscriptionManager:
         ):
             self.node.get_logger().info(
                 "[callback_measurement] Could not find TF2 lookup between frames [{0}] and [{1}]".format(
-                    self.global_frame, msg.header.frame_id
+                    self.node.global_frame, msg.header.frame_id
                 )
             )
             return
@@ -150,8 +150,11 @@ class SubscriptionManager:
         self.node.pub_measurement_array.publish(msg)
 
     def cb_fix(self, msg):
-        utm_point = utm.fromLatLong(
-            msg.latitude, msg.longitude, msg.altitude)
-        if utm_point.valid():
-            self.fix_timestamp = msg.header.stamp
-            self.utm_position = utm_point
+        try:
+            utm_point = utm.fromLatLong(
+                msg.latitude, msg.longitude, msg.altitude)
+            if utm_point.valid():
+                self.fix_timestamp = msg.header.stamp
+                self.utm_position = utm_point
+        except:
+           pass
