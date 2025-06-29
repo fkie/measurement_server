@@ -20,6 +20,7 @@ from sensor_msgs.msg import NavSatFix
 from geodesy import utm
 from typing import Set
 import tf2_ros
+import rclpy
 
 
 class SubscriptionManager:
@@ -73,7 +74,7 @@ class SubscriptionManager:
 
         try:
             trans = self.node.tf_buffer.lookup_transform(
-                self.node.global_frame, msg.header.frame_id, self.node.get_clock().now()
+                self.node.global_frame, msg.header.frame_id, rclpy.time.Time()
             )
             # get current position
             msg_loc.pose.pose.position.x = trans.transform.translation.x
@@ -89,10 +90,10 @@ class SubscriptionManager:
             tf2_ros.LookupException,
             tf2_ros.ConnectivityException,
             tf2_ros.ExtrapolationException,
-        ):
+        ) as ex:
             self.node.get_logger().info(
-                "[callback_measurement] Could not find TF2 lookup between frames [{0}] and [{1}]".format(
-                    self.node.global_frame, msg.header.frame_id
+                "[callback_measurement] Could not find TF2 lookup between frames [{0}] and [{1}]: {2}".format(
+                    self.node.global_frame, msg.header.frame_id, ex
                 )
             )
             return

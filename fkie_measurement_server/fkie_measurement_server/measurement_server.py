@@ -45,6 +45,7 @@ class MeasurementCollectorNode(Node):
         self.sensor_histories: Dict[str, MeasurementArray] = {}
 
         self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
         self.declare_parameter('topic_pub_measurement_array', 'measurement_array_agg')
         self.declare_parameter('topic_sub_measurement_array', 'measurement_array')
