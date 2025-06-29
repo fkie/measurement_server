@@ -15,6 +15,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import rclpy
 from rclpy.node import Node
 from typing import Dict
 import threading
@@ -93,7 +94,12 @@ class MeasurementCollectorNode(Node):
 
         self.get_logger().info(' ')
 
-        self.sub_client_count = self.create_subscription(Int32, '/client_count', self.callback_client_count, 5)
+        qos = rclpy.qos.QoSProfile(history=rclpy.qos.QoSHistoryPolicy.KEEP_LAST,
+                            depth=1,
+                            reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
+                            durability=rclpy.qos.QoSDurabilityPolicy.TRANSIENT_LOCAL)
+
+        self.sub_client_count = self.create_subscription(Int32, '/client_count', self.callback_client_count, qos)
 
     def peer_subscribe(self, topic_name, topic_publish, peer_publish):
         """
