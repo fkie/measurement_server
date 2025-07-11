@@ -182,12 +182,15 @@ class MeasurementCollectorNode(Node):
         if position_x and position_y and position_x:
             msg_loc.pose.pose.position.x = float(position_x)
             msg_loc.pose.pose.position.y = float(position_y)
-            msg_loc.pose.pose.position.z = float(position_z)
         else:
             msg_loc.pose.pose.position.x = 0.0
             msg_loc.pose.pose.position.y = 0.0
+        if position_z:
+            msg_loc.pose.pose.position.z = float(position_z)
+        else:
             msg_loc.pose.pose.position.z = 0.0
 
+        # TODO: accept also YAW, PITCH, ROLL
         if orientation_w and orientation_x and orientation_y and orientation_z:
             msg_loc.pose.pose.orientation.x = float(orientation_x)
             msg_loc.pose.pose.orientation.y = float(orientation_y)
@@ -199,16 +202,18 @@ class MeasurementCollectorNode(Node):
             msg_loc.pose.pose.orientation.z = 0.0
             msg_loc.pose.pose.orientation.w = 1.0
 
-        if stamp_sec and stamp_nanosec:
-            msg_loc.pose.header.stamp.sec = int(stamp_sec)
-            msg_loc.pose.header.stamp.nanosec = int(stamp_nanosec)
-            msg_loc.measurement.header.stamp.sec = int(stamp_sec)
-            msg_loc.measurement.header.stamp.nanosec = int(stamp_nanosec)
-        else:
-            msg_loc.pose.header.stamp.sec = int(time.time())
-            msg_loc.pose.header.stamp.nanosec = 0
-            msg_loc.measurement.header.stamp.sec = int(time.time())
-            msg_loc.measurement.header.stamp.nanosec = 0
+        # set timestamp
+        ts_sec = int(time.time())
+        ts_nanosec = 0
+        if stamp_sec:
+            ts_sec = int(stamp_sec)
+        if stamp_nanosec:
+            ts_nanosec = int(stamp_nanosec)
+
+        msg_loc.pose.header.stamp.sec = ts_sec
+        msg_loc.pose.header.stamp.nanosec = ts_nanosec
+        msg_loc.measurement.header.stamp.sec = ts_sec
+        msg_loc.measurement.header.stamp.nanosec = ts_nanosec
 
         if frame_id:
             msg_loc.pose.header.frame_id = frame_id
@@ -225,27 +230,22 @@ class MeasurementCollectorNode(Node):
             msg_loc.utm_zone_number = self.utm_zone_number
             msg_loc.utm_zone_letter = self.utm_zone_letter
 
-        s_history.located_measurements.append(msg_loc)
-
         # Measurement Value
         msg_value = MeasurementValue()
 
-        if stamp_sec and stamp_nanosec:
-            msg_value.begin.sec = int(stamp_sec)
-            msg_value.begin.nanosec = int(stamp_nanosec)
-            msg_value.end.sec = int(stamp_sec)
-            msg_value.end.nanosec = int(stamp_nanosec)
-        else:
-            msg_value.begin.sec = int(time.time())
-            msg_value.begin.nanosec = 0
-            msg_value.end.sec = int(time.time())
-            msg_value.end.nanosec = 0
+        msg_value.begin.sec = ts_sec
+        msg_value.begin.nanosec = ts_nanosec
+        msg_value.end.sec = ts_sec
+        msg_value.end.nanosec = ts_nanosec
 
         msg_value.sensor = sensor
         msg_value.source_type = source_type
         msg_value.unit = unit
         msg_value.value_single = float(value)
         msg_loc.measurement.values.append(msg_value)
+
+        # add to history
+        s_history.located_measurements.append(msg_loc)
 
         # Final Message
         msg_array = MeasurementArray()
