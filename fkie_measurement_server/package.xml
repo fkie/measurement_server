@@ -2,14 +2,16 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>fkie_measurement_server</name>
-  <version>0.0.1</version>
-  <description>Collects and storages measurement data of any number of sensors</description>
+  <version>1.0.0</version>
+  <description>ROS-independent measurement web server with a ROS 2 bridge</description>
   <maintainer email="alexander.tiderko@fkie.fraunhofer.de">Alexander Tiderko</maintainer>
-  <license>Apache License 2.0</license>
+  <license>MIT</license>
 
-  <depend>fkie_measurement_server_msgs</depend>
+  <exec_depend>rclpy</exec_depend>
   <depend>fkie_measurement_msgs</depend>
-  <depend>geodesy</depend>
+  <exec_depend>tf2_ros_py</exec_depend>
+
+  <!-- <depend>geodesy</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>visualization_msgs</depend>
@@ -20,7 +22,7 @@
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+  <test_depend>python3-pytest</test_depend> -->
 
   <export>
     <build_type>ament_python</build_type>

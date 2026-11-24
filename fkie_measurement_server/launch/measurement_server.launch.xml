@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Server arguments -->
+  <arg name="host" default="127.0.0.1" description="Bind address of the web server"/>
+  <arg name="port" default="8080" description="Port of the web server"/>
+  <arg name="name" default="measurements" description="Name of the measurement file"/>
+  <arg name="data_dir" default="measurement_data" description="Directory for measurement files"/>
+  <!-- Extra server options, e.g. "append", "clear" or "play measurement_data/test.jsonl" -->
+  <arg name="server_args" default="" description="Additional options for the web server"/>
+
+  <!-- Bridge arguments -->
+  <arg name="start_bridge" default="true" description="Start the ROS 2 bridge (set to false in play mode)"/>
+  <arg name="bridge_host" default="127.0.0.1" description="Host of the web server as seen by the bridge"/>
+  <arg name="topic" default="measurement_array" description="Input topic of the bridge"/>
+  <arg name="global_frame" default="map" description="Target frame for all poses"/>
+  <arg name="utm_zone_number" default="32" description="Default UTM zone number"/>
+  <arg name="utm_zone_letter" default="U" description="Default UTM zone letter"/>
+
+  <!-- The web server is not a ROS node, so it is started as a plain process -->
+  <executable
+    cmd="python3 -m fkie_measurement_server --host $(var host) --port $(var port) --name $(var name) --data-dir $(var data_dir) $(var server_args)"
+    name="measurement_server"
+    output="screen"/>
+
+  <node pkg="fkie_measurement_server" exec="measurement_ros_bridge" name="measurement_bridge_node"
+        output="screen" if="$(var start_bridge)">
+    <param name="topic_sub_measurement_array" value="$(var topic)"/>
+    <param name="server_host" value="$(var bridge_host)"/>
+    <param name="server_port" value="$(var port)"/>
+    <param name="global_frame" value="$(var global_frame)"/>
+    <param name="utm_zone_number" value="$(var utm_zone_number)"/>
+    <param name="utm_zone_letter" value="$(var utm_zone_letter)"/>
+  </node>
+</launch>

@@ -1,3 +1,5 @@
+from glob import glob
+
 from setuptools import find_packages, setup
 
 package_name = "fkie_measurement_server"
@@ -9,28 +11,23 @@ setup(
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
-        # ('share/' + package_name + 'config',
-        #  ['config/measurement_server_configs.yaml', 'config/sensor_simulator_config.yaml']),
         (
             "share/" + package_name + "/launch",
-            ["launch/measurement_collector.launch.xml"],
+            glob("launch/*.launch.py") + glob("launch/*.launch.xml"),
         ),
     ],
-    install_requires=[
-        "setuptools",
-        "fkie_measurement_msgs",
-        "geometry_msgs",
-        "nav_msgs",
-        "visualization_msgs",
-    ],
+    install_requires=["setuptools"],
+    python_requires=">=3.10",
     zip_safe=True,
     maintainer="Alexander Tiderko",
     maintainer_email="alexander.tiderko@fkie.fraunhofer.de",
-    description="Collects and storages measurement data of any number of sensors",
-    license="Apache License 2.0",
+    description="ROS-independent measurement web server with a ROS 2 bridge",
+    license="MIT",
     tests_require=["pytest"],
-    scripts=[
-        "scripts/measurement_collector_node.py",
-        # 'scripts/measurement_server_node.py',
-    ],
+    entry_points={
+        "console_scripts": [
+            "measurement_server = fkie_measurement_server.server:main",
+            "measurement_ros_bridge = fkie_measurement_server.bridge_entry:main",
+        ],
+    },
 )

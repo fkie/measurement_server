@@ -1,5 +1,4 @@
-.vscode
 __pycache__
-
-# Intellij IDEs
-.idea/
+.vscode
+.ruff_cache/
+measurement_data/
