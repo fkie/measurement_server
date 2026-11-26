@@ -11,10 +11,12 @@
   <!-- Bridge arguments -->
   <arg name="start_bridge" default="true" description="Start the ROS 2 bridge (set to false in play mode)"/>
   <arg name="bridge_host" default="127.0.0.1" description="Host of the web server as seen by the bridge"/>
+  <arg name="client" default="robot" description="The client name"/>
   <arg name="topic" default="measurement_array" description="Input topic of the bridge"/>
   <arg name="global_frame" default="map" description="Target frame for all poses"/>
   <arg name="utm_zone_number" default="32" description="Default UTM zone number"/>
   <arg name="utm_zone_letter" default="U" description="Default UTM zone letter"/>
+  <arg name="sensor_frame" default="sensor_frame"/>
 
   <!-- The web server is not a ROS node, so it is started as a plain process -->
   <executable
@@ -27,8 +29,13 @@
     <param name="topic_sub_measurement_array" value="$(var topic)"/>
     <param name="server_host" value="$(var bridge_host)"/>
     <param name="server_port" value="$(var port)"/>
+    <param name="client" value="$(var client)"/>
     <param name="global_frame" value="$(var global_frame)"/>
     <param name="utm_zone_number" value="$(var utm_zone_number)"/>
     <param name="utm_zone_letter" value="$(var utm_zone_letter)"/>
   </node>
+
+  <node name="tf_world_sensor_frame" pkg="tf2_ros" exec="static_transform_publisher" args="1.0 0.5 0.6 0 0 0 $(var global_frame) $(var sensor_frame)">
+  </node>
+
 </launch>
