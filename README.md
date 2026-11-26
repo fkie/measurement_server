@@ -68,11 +68,11 @@ Required fields:
 - `value`: measured value (number)
 
 Optional: `frame_id`, `z`, `pitch`, `roll`, `utm_zone_number`, `utm_zone_letter`,
-`unique_serial_id`, `manufacturer_device_name`, `device_classification`, `source_type`, `unit`.
+`unique_serial_id`, `manufacturer_device_name`, `device_classification`, `source_type`, `unit`, `client`.
 
 Single measurement:
 
-    curl -X POST "http://localhost:8080/?frame_id=world&stamp=25.500&x=366188&y=5609559&z=255&yaw=0.0&pitch=0&roll=0&utm_zone_number=32&utm_zone_letter=U&unique_serial_id=T-4000&manufacturer_device_name=Terminator%20Modell%204000&device_classification=T&sensor=threat-level&source_type=visual&unit=of%2010&value=6"
+    curl -X POST "http://localhost:8080/?frame_id=world&stamp=25.500&x=366188&y=5609559&z=255&yaw=0.0&pitch=0&roll=0&utm_zone_number=32&utm_zone_letter=U&client=my-system&unique_serial_id=T-4000&manufacturer_device_name=Terminator%20Modell%204000&device_classification=T&sensor=threat-level&source_type=visual&unit=of%2010&value=6"
 
 Several measurements in one call (JSON array or `{"measurements": [...]}`):
 
@@ -80,6 +80,8 @@ Several measurements in one call (JSON array or `{"measurements": [...]}`):
       -d '[{"stamp":25.5,"x":1,"y":2,"yaw":0,"sensor":"a","value":1},{"stamp":26.5,"x":1,"y":2,"yaw":0,"sensor":"a","value":0}]'
 
 For batches: if one measurement is invalid, the whole batch is rejected and nothing is stored.
+
+Python and C++ examples can be found [here](./examples/readme.md).
 
 ### Responses
 
@@ -125,7 +127,9 @@ Subscribed topics:
 
 Parameters:
 
-- `server_host` (default `127.0.0.1`), `server_port` (default `8080`)
+- `server_host` (default `127.0.0.1`),
+- `server_port` (default `8080`)
+- `client` (default ``),
 - `global_frame` (default `map`): target frame for all poses, empty = TF disabled
 - `tf_fallback_latest` (default `true`): use the latest transform if none exists for the message stamp
 - `utm_zone_number` (default 32), `utm_zone_letter` (default `U`): fallback if the message has no zone

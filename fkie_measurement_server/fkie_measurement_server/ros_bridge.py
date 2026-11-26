@@ -51,6 +51,7 @@ class MeasurementBridgeNode(Node):
     def __init__(self) -> None:
         super().__init__("measurement_bridge_node")
 
+        self.declare_parameter("client", "")
         self.declare_parameter("topic_sub_measurement_array", "measurement_array")
         self.declare_parameter("topic_sub_measurement", "/in_measurement")
         self.declare_parameter(
@@ -78,6 +79,7 @@ class MeasurementBridgeNode(Node):
         self._tf_fallback_latest = bool(self.get_parameter("tf_fallback_latest").value)
         host = str(self.get_parameter("server_host").value)
         port = int(self.get_parameter("server_port").value)
+        self._client_name = str(self.get_parameter("client").value).strip()
         self.utm_zone_number = valid_zone_number(
             self.get_parameter("utm_zone_number").value
         )
@@ -97,6 +99,7 @@ class MeasurementBridgeNode(Node):
         self.get_logger().info(
             f"  topic_sub_measurement_located: {topic_located or '(disabled)'}"
         )
+        self.get_logger().info(f"  client: {self._client_name or '(not set)'}")
         self.get_logger().info(
             f"  global_frame: {self._global_frame or '(TF disabled)'}"
         )
@@ -193,6 +196,8 @@ class MeasurementBridgeNode(Node):
     # ------------------------------------------------------------ handlers
     def _submit(self, payloads: list[Payload]) -> None:
         for payload in payloads:
+            if self._client_name:
+                payload["client"] = self._client_name
             _ = self._sender.submit(payload)
 
     def _handle_located(self, located: MeasurementLocated, now: float) -> None:

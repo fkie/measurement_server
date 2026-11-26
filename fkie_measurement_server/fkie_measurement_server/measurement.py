@@ -6,7 +6,14 @@ from typing import Any
 
 REQUIRED_FIELDS = ("stamp", "x", "y", "yaw", "sensor", "value")
 _OPTIONAL_FLOATS = ("z", "pitch", "roll")
-_OPTIONAL_STRINGS = ("unique_serial_id", "device_classification", "source_type", "unit")
+_OPTIONAL_STRINGS = (
+    "unique_serial_id",
+    "device_classification",
+    "source_type",
+    "unit",
+    "client",
+    "client_id",
+)
 
 
 class ValidationError(ValueError):
@@ -100,6 +107,8 @@ def validate_measurement(raw: Any) -> dict[str, Any]:
     return {
         "stamp": numbers["stamp"],
         "frame_id": _text(raw.get("frame_id")),
+        "client": strings["client"],
+        "client_id": strings["client_id"],
         "x": numbers["x"],
         "y": numbers["y"],
         "z": numbers["z"],

@@ -198,7 +198,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             problems: list[dict[str, Any]] = []
             for index, record in enumerate(records):
                 try:
-                    validated.append(validate_measurement(record))
+                    measurement = validate_measurement(record)
+                    measurement["client_id"] = f"{self.client_address[0]}"
+                    validated.append(measurement)
                 except ValidationError as exc:
                     problems.append({"index": index, "errors": exc.errors})
             if problems:
@@ -437,7 +439,7 @@ def build_parser() -> argparse.ArgumentParser:
     _ = mode.add_argument(
         "--resolve",
         metavar="FILE",
-        help="keep only the last measurement per stamp, write a new file and exit",
+        help="keep only the last measurement per stamp (and client/client_id), write a new file and exit",
     )
     _ = parser.add_argument(
         "--play-speed",

@@ -2,3 +2,4 @@ __pycache__
 .vscode
 .ruff_cache/
 measurement_data/
+examples/publish

@@ -16,6 +16,7 @@ from .measurement import ValidationError, validate_measurement
 logger = logging.getLogger("fkie_measurement_server")
 
 # Measurements with an identical key are reduced to the last one by --resolve.
+# Resolve also includes the client name, or client_id if the name is absent.
 # Change this tuple if the key should be e.g. ("stamp", "unique_serial_id", "sensor").
 RESOLVE_KEY_FIELDS = ("stamp",)
 
@@ -98,6 +99,15 @@ def _resolve_key(record: dict[str, Any]) -> tuple[Any, ...] | None:
         except (TypeError, ValueError):
             pass
         values.append(value)
+
+    raw_client = record.get("client")
+    client = "" if raw_client is None else str(raw_client).strip()
+
+    if not client:
+        raw_client_id = record.get("client_id")
+        client = "" if raw_client_id is None else str(raw_client_id).strip()
+
+    values.append(client)
     return tuple(values)
 
 
